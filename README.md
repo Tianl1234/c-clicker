@@ -1,10 +1,4 @@
-# 🍪 Crazy Clicker v3.0 — Cookie Clicker: Ultimate Edition
-
-A high-performance, feature-rich, browser-based incremental game built entirely using modern vanilla web technologies (HTML5, CSS3, and JavaScript). This project delivers a polished desktop experience featuring a deep progression system, active gameplay mechanics, and advanced rendering optimizations.
-
----
-
-## 🚀 Key Features
+ C-Clicker v3.0
 
 ### 🏢 Deep Economy & Building Tiers
 Features **10 unique building types** spanning across historical and sci-fi themes:
