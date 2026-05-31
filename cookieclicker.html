@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cookie Clicker - Ultimate Edition 3.0</title>
+    
+    <style>
+
+    
+        /* --- CSS: DAS ULTIMATIVE DESIGN --- */
+        :root {
+            --bg-dark: #120d0a;
+            --bg-panel: #2b1d14;
+            --border-color: #5a3a22;
+            --text-main: #f4d3a8;
+            --highlight: #ffb703;
+            --prestige: #a3daff;
+            --success: #4ade80;
+            --warning: #fbbf24;
+            --danger: #f87171;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0; padding: 0;
+            background-color: var(--bg-dark); color: var(--text-main);
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            overflow: hidden; user-select: none;
+            display: flex; flex-direction: column; height: 100vh;
+        }
+
+        /* News Ticker */
+        #top-bar {
+            background-color: #000; padding: 10px; border-bottom: 2px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center; z-index: 100;
+        }
+        
+        #news-ticker { font-style: italic; color: #aaa; overflow: hidden; white-space: nowrap; flex-grow: 1; margin: 0 20px;}
+
+        /* Main Layout Grid */
+        #game-container {
+            display: grid; grid-template-columns: 1fr 1fr 1fr; height: calc(100vh - 40px);
+        }
+
+        .panel { padding: 20px; overflow-y: auto; overflow-x: hidden; border-right: 2px solid var(--border-color); }
+        .panel:last-child { border-right: none; }
+
+        /* Custom Scrollbar für die Panels */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+
+        /* Left Panel - The Cookie */
+        #left-panel {
+            display: flex; flex-direction: column; align-items: center; background-color: #1a120c; position: relative;
+        }
+        
+        #bakery-name { font-size: 2rem; color: var(--highlight); margin-bottom: 10px; text-shadow: 2px 2px 4px #000; }
+        
+        .cookie-stats {
+            background: rgba(0,0,0,0.6); padding: 15px; border-radius: 10px; text-align: center; width: 90%; margin-bottom: 40px;
+            border: 1px solid var(--border-color);
+        }
+        .cookie-stats h2 { margin: 0; font-size: 2.5rem; color: #fff; }
+        .cookie-stats p { margin: 5px 0 0 0; color: #aaa; }
+
+        #cookie-btn {
+            font-size: 12rem; background: none; border: none; cursor: pointer; transition: transform 0.05s;
+            filter: drop-shadow(0 15px 25px rgba(0,0,0,0.8)); -webkit-tap-highlight-color: transparent; z-index: 10;
+        }
+        #cookie-btn:active { transform: scale(0.95); }
+
+        /* Middle Panel - Upgrades & Stats */
+        #middle-panel { background-color: var(--bg-panel); max-width: 100%; overflow: hidden; display: flex; flex-direction: column; }
+        
+        /* =========================================
+           Wischbare Tab-Leiste (Scrollbar Tabs)
+           ========================================= */
+        .tabs { 
+            display: flex; 
+            margin-bottom: 20px; 
+            border-bottom: 2px solid var(--border-color); 
+            overflow-x: auto; 
+            scrollbar-width: thin; 
+            scrollbar-color: var(--border-color) transparent;
+            -ms-overflow-style: none;
+            padding-bottom: 5px;
+            flex-shrink: 0; /* Verhindert das Zusammenquetschen */
+        }
+        /* Chrome/Edge/Safari: Schicker, schmaler Scrollbalken */
+        .tabs::-webkit-scrollbar { height: 6px; display: block; }
+        .tabs::-webkit-scrollbar-track { background: transparent; }
+        .tabs::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+
+        .tab-btn {
+            background: transparent; border: none; color: #888; padding: 10px 15px; cursor: pointer; font-size: 1.1rem; flex-grow: 1;
+            flex-shrink: 0; /* Verhindert das Quetschen der Buttons */
+            white-space: nowrap; /* Hält den Text in einer einzigen Zeile */
+        }
+        .tab-btn.active { color: var(--highlight); border-bottom: 3px solid var(--highlight); font-weight: bold; }
+        
+        .tab-content { display: none; overflow-y: auto; flex-grow: 1; padding-right: 5px; }
+        .tab-content.active { display: block; }
+
+        /* Upgrades Container */
+        #upgrades-container { display: flex; flex-wrap: wrap; gap: 8px; }
+        .upgrade-btn {
+            width: 50px; height: 50px; background-color: #442a18; border: 2px solid var(--border-color);
+            border-radius: 5px; font-size: 1.5rem; cursor: pointer; transition: 0.2s; position: relative;
+        }
+        .upgrade-btn:hover:not(:disabled) { background-color: var(--highlight); border-color: #fff; }
+        .upgrade-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* Right Panel - Buildings */
+        #right-panel { background-color: #1f140e; padding: 10px; }
+        
+        .building-btn {
+            width: 100%; background: linear-gradient(90deg, #3a2515 0%, #2b1d14 100%);
+            border: 2px solid var(--border-color); border-radius: 8px; margin-bottom: 10px; padding: 15px;
+            display: flex; align-items: center; cursor: pointer; transition: all 0.2s; text-align: left; color: white;
+        }
+        .building-btn:hover:not(:disabled) { transform: translateX(-5px); border-color: var(--highlight); box-shadow: -5px 5px 15px rgba(0,0,0,0.5); }
+        .building-btn:disabled { filter: grayscale(100%); opacity: 0.5; cursor: not-allowed; }
+        
+        .b-icon { font-size: 2.5rem; margin-right: 15px; width: 50px; text-align: center; }
+        .b-info { flex-grow: 1; }
+        .b-name { font-size: 1.3rem; font-weight: bold; margin: 0 0 5px 0; color: var(--highlight); }
+        .b-cost { color: #4ade80; font-weight: bold; }
+        .b-count { font-size: 2.5rem; font-weight: bold; color: rgba(255,255,255,0.2); }
+
+        /* Prestige UI */
+        #prestige-btn {
+            background-color: #113448; color: var(--prestige); border: 2px solid #3b82f6; width: 100%;
+            padding: 15px; font-size: 1.2rem; cursor: pointer; border-radius: 5px; margin-top: 20px; font-weight: bold;
+        }
+        #prestige-btn:hover { background-color: #1e4b6b; }
+
+        /* Particles & Golden Cookie */
+        .particle {
+            position: absolute; color: white; font-weight: bold; font-size: 1.5rem; pointer-events: none;
+            animation: floatUp 1.5s ease-out forwards; text-shadow: 1px 1px 2px #000; z-index: 50;
+        }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-150px) scale(1.5); opacity: 0; } }
+
+        #golden-cookie {
+            position: absolute; font-size: 4rem; cursor: pointer; display: none; z-index: 100;
+            animation: pulse 2s infinite, spin 10s linear infinite; filter: drop-shadow(0 0 20px gold);
+        }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* System Buttons */
+        .sys-btn {
+            background: #444; color: white; border: none; padding: 10px 20px; border-radius: 4px;
+            cursor: pointer; margin-top: 10px; width: 100%; font-size: 1rem;
+        }
+        .sys-btn:hover { background: #666; }
+        .danger { background: #8b0000; }
+        .danger:hover { background: #b20000; }
+
+        /* Combo-System */
+        #combo-display {
+            position: fixed; top: 50px; left: 50%; transform: translateX(-50%); font-size: 2rem;
+            color: #ff6b6b; font-weight: bold; text-shadow: 0 0 10px #ff6b6b; pointer-events: none;
+            z-index: 200; display: none; animation: comboFlash 0.3s;
+        }
+        @keyframes comboFlash { 0% { transform: translateX(-50%) scale(0.5); opacity: 0; } 100% { transform: translateX(-50%) scale(1); opacity: 1; } }
+
+        /* Boost Icon */
+        #active-boost {
+            position: fixed; bottom: 20px; right: 20px; font-size: 3rem; cursor: pointer;
+            filter: drop-shadow(0 0 10px gold); animation: boostPulse 1s infinite;
+            z-index: 150;
+        }
+        @keyframes boostPulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+
+        /* Achievement Popup */
+        .achievement-popup {
+            position: fixed; bottom: 20px; left: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 3px solid gold; border-radius: 15px; padding: 20px; min-width: 250px; z-index: 300;
+            animation: achievementSlide 0.5s ease-out;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        @keyframes achievementSlide { 0% { transform: translateX(-500px); } 100% { transform: translateX(0); } }
+        .achievement-popup h4 { margin: 0 0 5px 0; color: gold; font-size: 1.2rem; }
+        .achievement-popup p { margin: 0; color: #fff; font-size: 0.95rem; }
+
+        /* Leaderboard / Stats */
+        .stat-box {
+            background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px; margin: 5px 0;
+            border-left: 3px solid var(--highlight);
+        }
+
+        /* Hoverable upgrades */
+        .upgrade-btn[title]:hover::after {
+            content: attr(title);
+            position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+            background: #000; color: #fff; padding: 8px; border-radius: 5px; font-size: 0.9rem;
+            white-space: nowrap; z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="top-bar">
+        <div>Crazy Clicker v3.0 ⭐</div>
+        <div id="news-ticker">Lade Nachrichten...</div>
+        <div>Prestige: <span id="ui-prestige" style="color: var(--prestige); font-weight: bold;">0</span> | Combo: <span id="ui-combo" style="color: var(--warning);">x1</span></div>
+    </div>
+
+    <div id="combo-display"></div>
+    <div id="active-boost" style="display: none;"></div>
+
+    <div id="game-container">
+        
+        <div id="left-panel" class="panel">
+            <h1 id="bakery-name">Deine Bäckerei</h1>
+            <div class="cookie-stats">
+                <h2 id="ui-cookies">0</h2>
+                <p>Kekse</p>
+                <p style="color: var(--highlight);">pro Sekunde: <span id="ui-cps">0</span></p>
+                <p id="frenzy-indicator" style="color: gold; display: none; font-weight: bold; margin-top: 5px;">🔥 FRENZY! (x7) 🔥</p>
+            </div>
+            
+            <button id="cookie-btn">🍪</button>
+            <div id="golden-cookie">🌟</div>
+        </div>
+
+        <div id="middle-panel" class="panel">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('upgrades')">Upgrades</button>
+                <button class="tab-btn" onclick="switchTab('boosts')">Boosts</button>
+                <button class="tab-btn" onclick="switchTab('achievements')">Erfolge</button>
+                <button class="tab-btn" onclick="switchTab('stats')">Statistik</button>
+                <button class="tab-btn" onclick="switchTab('settings')">Optionen</button>
+            </div>
+
+            <div id="tab-upgrades" class="tab-content active">
+                <h3 style="margin-top: 0;">Verfügbare Upgrades</h3>
+                <div id="upgrades-container"></div>
+            </div>
+
+            <div id="tab-boosts" class="tab-content">
+                <h3 style="margin-top: 0;">Spezielle Boosts</h3>
+                <p style="color: #aaa; font-size: 0.9rem;">Boosts werden durch spezielle Events aktiviert oder können manuell aktiviert werden!</p>
+                <hr style="border-color: var(--border-color)">
+                <h4 style="color: var(--highlight);">Verfügbare Boosts:</h4>
+                <div id="boosts-container"></div>
+                <hr style="border-color: var(--border-color)">
+                <h4 style="color: var(--highlight);">💡 Tipps:</h4>
+                <ul style="color: #aaa; font-size: 0.9rem; margin: 10px 0;">
+                    <li>Erreiche einen x100 Combo für "Combo-König" Erfolg!</li>
+                    <li>Zufällige Boosts können sich jederzeit aktivieren</li>
+                    <li>Schnelles Klicken ist der Schlüssel zum Combo!</li>
+                </ul>
+            </div>
+
+            <div id="tab-achievements" class="tab-content">
+                <h3 style="margin-top: 0;">Erfolge</h3>
+                <div id="achievements-container"></div>
+            </div>
+
+            <div id="tab-stats" class="tab-content">
+                <h3>Deine Statistiken</h3>
+                <div class="stat-box">
+                    <strong>📊 Klick-Statistik:</strong>
+                    <p>Klicks gesamt: <strong id="stat-clicks">0</strong></p>
+                    <p>Handgemachte Kekse: <strong id="stat-hand-cookies">0</strong></p>
+                </div>
+                <div class="stat-box">
+                    <strong>🍪 Keks-Statistik:</strong>
+                    <p>Kekse insgesamt (all time): <strong id="stat-all-time">0</strong></p>
+                    <p>Goldene Kekse geklickt: <strong id="stat-golden">0</strong></p>
+                </div>
+                <div class="stat-box">
+                    <strong>🏅 Produktions-Rate:</strong>
+                    <p id="stat-cps-display">Kekse pro Sekunde: 0</p>
+                </div>
+                <hr style="border-color: var(--border-color)">
+                <h3>Prestige & Aufstieg</h3>
+                <div class="stat-box" style="background: linear-gradient(135deg, rgba(51,102,204,0.3) 0%, rgba(102,51,153,0.3) 100%); border-left-color: var(--prestige);">
+                    <p style="color: var(--prestige); font-weight: bold;">💫 Himmlische Chips gewähren:</p>
+                    <p>✨ +1% CpS pro Chip (dauerhaft)</p>
+                    <p>⭐ Unlock spezielle Prestigeboni</p>
+                    <p style="margin-top: 10px; color: #aaa;">Du hast <strong id="ui-pending-prestige-stat">0</strong> ausstehende Chips</p>
+                </div>
+                <button id="prestige-btn-stats" onclick="ascend()" style="width: 100%; margin-top: 10px; background-color: #113448; color: var(--prestige); border: 2px solid #3b82f6; padding: 15px; font-size: 1.1rem; cursor: pointer; border-radius: 5px; font-weight: bold;">Aufsteigen</button>
+            </div>
+
+            <div id="tab-settings" class="tab-content">
+                <h3>Speicherverwaltung</h3>
+                <button class="sys-btn" onclick="saveGame()">💾 Spiel speichern</button>
+                <button class="sys-btn danger" style="margin-top: 20px;" onclick="resetGame()">🗑️ Komplett löschen (Hard Reset)</button>
+                
+                <div id="dev-console" style="display: none;">
+                    <hr style="border-color: var(--border-color); margin: 20px 0;">
+                    
+                    <h3 style="color: var(--warning);">🔨 Developer Console</h3>
+                    <p style="color: #aaa; font-size: 0.85rem;">Schneller zum Testing:</p>
+                    <button class="sys-btn" style="background: #445; margin: 5px 0;" onclick="game.cookies += 1000000; updateUI();">+1 Million Kekse</button>
+                    <button class="sys-btn" style="background: #445; margin: 5px 0;" onclick="game.cookies += 1000000000; updateUI();">+1 Billion Kekse</button>
+                    <button class="sys-btn" style="background: #445; margin: 5px 0;" onclick="Object.keys(game.buildings).forEach(b => game.buildings[b] = Math.min(5000, game.buildings[b] + 100)); recalculateStats(); updateUI();">+100 aller Gebäude</button>
+                    <button class="sys-btn" style="background: #445; margin: 5px 0;" onclick="game.prestigeLevel += 10; recalculateStats(); updateUI();">+10 Prestige</button>
+                </div>
+            </div>
+        </div> 
+        
+        <div id="right-panel" class="panel">
+            <h2 style="margin-top:0; text-align:center; border-bottom: 2px solid var(--border-color); padding-bottom:10px;">Gebäude</h2>
+            <div id="buildings-container">
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        /* =========================================================================
+           1. SPIELDATEN & KONFIGURATION
+           ========================================================================= */
+        
+        let game = {
+            cookies: 0,
+            totalCookiesAllTime: 0,
+            cookiesFromClicks: 0,
+            totalClicks: 0,
+            goldenCookiesClicked: 0,
+            prestigeLevel: 0,
+            buildings: {}, 
+            upgradesOwned: [], 
+            achievementsUnlocked: [], 
+            questsCompleted: [], 
+            combo: 0, 
+            maxCombo: 0, 
+            activeBoost: null, 
+            boostTime: 0 
+        };
+
+        const BUILDINGS_DB = [
+            { id: 'cursor', name: 'Cursor', icon: '👆', basePrice: 15, baseCps: 0.1, desc: 'Klickt automatisch.' },
+            { id: 'grandma', name: 'Oma', icon: '👵', basePrice: 100, baseCps: 1, desc: 'Backt liebevoll.' },
+            { id: 'farm', name: 'Keks-Farm', icon: '🌾', basePrice: 1100, baseCps: 8, desc: 'Züchtet Kekse.' },
+            { id: 'mine', name: 'Keks-Mine', icon: '⛏️', basePrice: 12000, baseCps: 47, desc: 'Baut Schokostückchen ab.' },
+            { id: 'factory', name: 'Fabrik', icon: '🏭', basePrice: 130000, baseCps: 260, desc: 'Massenproduktion.' },
+            { id: 'bank', name: 'Bank', icon: '💰', basePrice: 1400000, baseCps: 1400, desc: 'Kekse generieren Zinsen.' },
+            { id: 'temple', name: 'Tempel', icon: '🏛️', basePrice: 20000000, baseCps: 7800, desc: 'Betet zum Keks-Gott.' },
+            { id: 'wizard', name: 'Zauberturm', icon: '🧙', basePrice: 330000000, baseCps: 44000, desc: 'Beschwört Kekse.' },
+            { id: 'ship', name: 'Raumschiff', icon: '🚀', basePrice: 5100000000, baseCps: 260000, desc: 'Bringt Kekse vom Keks-Planeten.' },
+            { id: 'alchemy', name: 'Alchemielabor', icon: '⚗️', basePrice: 75000000000, baseCps: 1600000, desc: 'Macht Gold zu Keksen.' }
+        ];
+
+        const UPGRADES_DB = [
+            { id: 'u1', name: 'Plastik-Maus', icon: '🖱️', price: 100, targetId: 'cursor', multi: 2, reqCount: 1 },
+            { id: 'u2', name: 'Stahl-Maus', icon: '🖱️', price: 500, targetId: 'cursor', multi: 2, reqCount: 10 },
+            { id: 'u3', name: 'Nudelholz', icon: '🥖', price: 1000, targetId: 'grandma', multi: 2, reqCount: 1 },
+            { id: 'u4', name: 'Dünger', icon: '💩', price: 11000, targetId: 'farm', multi: 2, reqCount: 1 },
+            { id: 'u5', name: 'Dynamit', icon: '🧨', price: 120000, targetId: 'mine', multi: 2, reqCount: 1 },
+            { id: 'u6', name: 'Fließband', icon: '⚙️', price: 1300000, targetId: 'factory', multi: 2, reqCount: 1 },
+            { id: 'u7', name: 'Zinseszins', icon: '💵', price: 14000000, targetId: 'bank', multi: 2, reqCount: 1 },
+            { id: 'u8', name: 'Heilige Reliquie', icon: '📿', price: 200000000, targetId: 'temple', multi: 2, reqCount: 1 },
+            { id: 'u9', name: 'Warp-Antrieb', icon: '🌌', price: 5200000000, targetId: 'wizard', multi: 2, reqCount: 1 },
+            { id: 'u10', name: 'Hyper-Sprung', icon: '🛸', price: 51000000000, targetId: 'ship', multi: 2, reqCount: 1 },
+            { id: 'u11', name: 'Transmutation', icon: '✨', price: 750000000000, targetId: 'alchemy', multi: 2, reqCount: 1 },
+            { id: 'clk1', name: 'Finger-Training', icon: '💪', price: 50000, targetId: 'click', multi: 2, reqCount: 0 },
+            { id: 'clk2', name: 'Affen-Kraft', icon: '🐵', price: 5000000, targetId: 'click', multi: 3, reqCount: 0 },
+            { id: 'clk3', name: 'Götter-Gelenk', icon: '⚡', price: 500000000, targetId: 'click', multi: 5, reqCount: 0 },
+            { id: 'pass1', name: 'Fleißige Omas', icon: '👵👵', price: 500000, targetId: 'passive', bonus: 0.05 },
+            { id: 'pass2', name: 'Keks-Alchemie', icon: '🌟', price: 50000000, targetId: 'passive', bonus: 0.10 },
+            { id: 'pass3', name: 'Goldene Regel', icon: '⭐', price: 500000000, targetId: 'passive', bonus: 0.25 },
+            { id: 'pass4', name: 'Keks-Magie', icon: '🔮', price: 10000000000, targetId: 'passive', bonus: 0.50 }
+        ];
+
+        const ACHIEVEMENTS_DB = [
+            { id: 'first_click', name: 'Erste Bisse', icon: '🍪', desc: 'Mache deinen ersten Klick', condition: (g) => g.totalClicks >= 1 },
+            { id: 'clicker_pro', name: 'Klick-Profi', icon: '🖱️', desc: 'Mache 1000 Klicks', condition: (g) => g.totalClicks >= 1000 },
+            { id: 'clicker_master', name: 'Klick-Meister', icon: '🖱️🖱️', desc: 'Mache 100.000 Klicks', condition: (g) => g.totalClicks >= 100000 },
+            { id: 'millionaire', name: 'Millionär', icon: '💰', desc: 'Besitze 1 Million Kekse', condition: (g) => g.cookies >= 1000000 },
+            { id: 'billionaire', name: 'Multimillionär', icon: '💎', desc: 'Besitze 1 Billion Kekse', condition: (g) => g.cookies >= 1000000000 },
+            { id: 'trillionaire', name: 'Billionär', icon: '💎💎', desc: 'Besitze 1 Billion Kekse all-time', condition: (g) => g.totalCookiesAllTime >= 1000000000000 },
+            { id: 'golden_touch', name: 'Goldener Griff', icon: '🌟', desc: 'Klicke 10 goldene Kekse', condition: (g) => g.goldenCookiesClicked >= 10 },
+            { id: 'golden_master', name: 'Goldener Meister', icon: '🌟🌟', desc: 'Klicke 100 goldene Kekse', condition: (g) => g.goldenCookiesClicked >= 100 },
+            { id: 'full_collection', name: 'Vollständige Sammlung', icon: '🏆', desc: 'Besitze alle 10 Gebäudetypen', condition: (g) => Object.values(g.buildings).every(x => x > 0) },
+            { id: 'prestige_1', name: 'Himmlischer Anfänger', icon: '⭐', desc: 'Steige 1x auf', condition: (g) => g.prestigeLevel >= 1 },
+            { id: 'prestige_10', name: 'Himmlischer Meister', icon: '✨', desc: 'Steige 10x auf', condition: (g) => g.prestigeLevel >= 10 },
+            { id: 'prestige_50', name: 'Himmlischer Gott', icon: '✨✨', desc: 'Steige 50x auf', condition: (g) => g.prestigeLevel >= 50 },
+            { id: 'mega_combo', name: 'Combo-König', icon: '⚡', desc: 'Erreiche einen x100 Combo', condition: (g) => g.maxCombo >= 100 },
+            { id: 'insane_combo', name: 'Combo-Gott', icon: '⚡⚡', desc: 'Erreiche einen x500 Combo', condition: (g) => g.maxCombo >= 500 }
+        ];
+
+        const BOOSTS_DB = [
+            { id: 'boost_double', name: 'Doppel-Zeit', icon: '2️⃣', desc: 'Verdoppelt CpS für 30 Sekunden', multiplier: 2, duration: 30 },
+            { id: 'boost_triple', name: 'Dreifach-Kracher', icon: '3️⃣', desc: 'Verdreifacht CpS für 20 Sekunden', multiplier: 3, duration: 20 },
+            { id: 'boost_combo', name: 'Combo-Fest', icon: '🎯', desc: 'x2 Combo-Punkte für 40 Sekunden', type: 'combo', multiplier: 2, duration: 40 },
+            { id: 'boost_mega', name: 'MEGA-BOOST', icon: '💥', desc: 'x10 alles für 10 Sekunden (EXTREM!)', multiplier: 10, duration: 10 }
+        ];
+
+        const QUESTS_DB = [
+            { id: 'q1', name: 'Schnell-Finger', desc: 'Erreiche einen x50 Combo', condition: (g) => g.maxCombo >= 50, reward: 50000 },
+            { id: 'q2', name: 'Gebäude-Sammler', desc: 'Besitze 5 von jedem Gebäude', condition: (g) => Object.values(g.buildings).every(x => x >= 5), reward: 100000 },
+            { id: 'q3', name: 'Millionen-Klicker', desc: 'Mache 100.000 Klicks', condition: (g) => g.totalClicks >= 100000, reward: 500000 },
+            { id: 'q4', name: 'Golden Touch Master', desc: 'Klicke 50 goldene Kekse', condition: (g) => g.goldenCookiesClicked >= 50, reward: 250000 }
+        ];
+
+        const SECRET_EVENTS = [
+            { name: 'Lucky Cookie! 🍀', action: () => { boostMultiplier = 5 + Math.floor(Math.random() * 5); game.boostTime = 15; showNews('🍀 GLÜCKLICHER KEKS! x' + boostMultiplier + ' für 15 Sekunden!'); } },
+            { name: 'Bakery BOOM! 💥', action: () => { boostMultiplier = 2; game.boostTime = 60; showNews('💥 BÄCKEREI-BOOM! x2 ALLES für 1 Minute!'); } },
+            { name: 'Sugar Rush! ⚡', action: () => { clickBuffMultiplier = 10; clickBuffTimer = 10; showNews('⚡ ZUCKER-RUSH! Klick-Kraft x10 für 10 Sekunden!'); } },
+            { name: 'Keks-Regen! 🌧️', action: () => { let gain = game.totalCookiesAllTime * 0.1; game.cookies += gain; game.totalCookiesAllTime += gain; showNews('🌧️ KEKS-REGEN! +10% deiner All-Time Kekse!'); } }
+        ];
+
+        let currentCps = 0;
+        let clickPower = 1;
+        let clickBuffMultiplier = 1; 
+        let clickBuffTimer = 0;      
+        let frenzyMultiplier = 1;
+        let frenzyTimer = 0;
+        let comboTimer = 0; 
+        let boostMultiplier = 1;
+        let comboMultiplier = 1; 
+        let playTimeSeconds = 0;
+
+        /* =========================================================================
+           2. INITIALISIERUNG & DOM AUFBAU
+           ========================================================================= */
+
+        function initGame() {
+            loadGame(); 
+            
+            BUILDINGS_DB.forEach(b => {
+                if (game.buildings[b.id] === undefined) game.buildings[b.id] = 0;
+            });
+
+            generateBuildingsUI();
+            generateUpgradesUI();
+            generateAchievementsUI();
+            generateBoostsUI();
+            recalculateStats();
+            checkAchievements(); 
+            updateUI();
+        }
+
+        function generateBuildingsUI() {
+            const container = document.getElementById('buildings-container');
+            container.innerHTML = '';
+            
+            BUILDINGS_DB.forEach(b => {
+                const btn = document.createElement('button');
+                btn.className = 'building-btn';
+                btn.id = `btn-${b.id}`;
+                btn.onclick = () => buyBuilding(b.id);
+                
+                btn.innerHTML = `
+                    <div class="b-icon">${b.icon}</div>
+                    <div class="b-info">
+                        <h4 class="b-name">${b.name}</h4>
+                        <div class="b-cost" id="cost-${b.id}">0</div>
+                    </div>
+                    <div class="b-count" id="count-${b.id}">0</div>
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        function generateUpgradesUI() {
+            const container = document.getElementById('upgrades-container');
+            container.innerHTML = '';
+
+            UPGRADES_DB.forEach(u => {
+                if (game.upgradesOwned.includes(u.id)) return;
+
+                const btn = document.createElement('button');
+                btn.className = 'upgrade-btn';
+                btn.id = `upg-${u.id}`;
+                btn.innerHTML = u.icon;
+                btn.title = `${u.name}\nKosten: ${formatNumber(u.price)}\nEffekt: Verdoppelt Effizienz.`;
+                btn.onclick = () => buyUpgrade(u.id);
+                container.appendChild(btn);
+            });
+        }
+
+        function generateAchievementsUI() {
+            const container = document.getElementById('achievements-container');
+            container.innerHTML = '';
+
+            let html = '<h4 style="color: var(--highlight); margin-top: 0;">🏆 Erfolge</h4>';
+            ACHIEVEMENTS_DB.forEach(a => {
+                const unlocked = game.achievementsUnlocked.includes(a.id);
+                html += `
+                    <div style="display: flex; gap: 10px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 5px; margin: 5px 0; border: 1px solid ${unlocked ? 'gold' : '#555'};">
+                        <div style="font-size: 1.5rem;">${a.icon}</div>
+                        <div>
+                            <strong style="color: ${unlocked ? 'gold' : '#aaa'};">${a.name}</strong>
+                            <p style="margin: 3px 0; font-size: 0.85rem; color: #888;">${a.desc}</p>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '<hr style="border-color: var(--border-color); margin: 15px 0;"><h4 style="color: var(--success); margin: 10px 0;">⭐ Quests</h4>';
+            QUESTS_DB.forEach(q => {
+                const completed = game.questsCompleted.includes(q.id);
+                html += `
+                    <div style="display: flex; gap: 10px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 5px; margin: 5px 0; border: 1px solid ${completed ? 'var(--success)' : '#555'};">
+                        <div style="font-size: 1.5rem;">⭐</div>
+                        <div style="flex-grow: 1;">
+                            <strong style="color: ${completed ? 'var(--success)' : '#aaa'};">${q.name}</strong>
+                            <p style="margin: 3px 0; font-size: 0.85rem; color: #888;">${q.desc}</p>
+                            <p style="margin: 3px 0; font-size: 0.85rem; color: var(--success);">💰 Belohnung: ${formatNumber(q.reward)}</p>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function generateBoostsUI() {
+            const container = document.getElementById('boosts-container');
+            container.innerHTML = '';
+
+            BOOSTS_DB.forEach(b => {
+                const btn = document.createElement('button');
+                btn.style.cssText = 'width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: 2px solid gold; border-radius: 8px; padding: 10px; margin: 5px 0; color: white; cursor: pointer; font-weight: bold;';
+                btn.innerHTML = `${b.icon} ${b.name} - ${b.desc}`;
+                btn.onclick = () => activateBoost(b.id);
+                container.appendChild(btn);
+            });
+        }
+
+        /* =========================================================================
+           3. KERN-LOGIK & BERECHNUNGEN
+           ========================================================================= */
+
+        function getBuildingCost(basePrice, count) {
+            return Math.floor(basePrice * Math.pow(1.15, count));
+        }
+
+        function recalculateStats() {
+            let newCps = 0;
+
+            BUILDINGS_DB.forEach(b => {
+                let count = game.buildings[b.id];
+                let buildingCps = b.baseCps * count;
+
+                UPGRADES_DB.forEach(u => {
+                    if (u.targetId === b.id && game.upgradesOwned.includes(u.id)) {
+                        buildingCps *= u.multi;
+                    }
+                });
+
+                newCps += buildingCps;
+            });
+
+            if (game.prestigeLevel > 0) {
+                newCps += newCps * (game.prestigeLevel * 0.01);
+            }
+
+            UPGRADES_DB.forEach(u => {
+                if (u.targetId === 'passive' && game.upgradesOwned.includes(u.id)) {
+                    newCps += newCps * u.bonus;
+                }
+            });
+
+            currentCps = newCps;
+
+            let baseClick = 1 + (currentCps * 0.01);
+            
+            if (game.upgradesOwned.includes('clk1')) baseClick *= 2;
+            if (game.upgradesOwned.includes('clk2')) baseClick *= 3;
+            if (game.upgradesOwned.includes('clk3')) baseClick *= 5;
+            
+            clickPower = baseClick;
+        }
+
+       function buyBuilding(id) {
+            // Sofort abbrechen, wenn der Spieler schon 5000 oder mehr hat
+            if (game.buildings[id] >= 5000) return; 
+
+            const b = BUILDINGS_DB.find(x => x.id === id);
+            const cost = getBuildingCost(b.basePrice, game.buildings[id]);
+
+            if (game.cookies >= cost) {
+                game.cookies -= cost;
+                game.buildings[id]++;
+                recalculateStats();
+                updateUI();
+                checkUpgradesVisibility();
+            }
+        }
+
+        function buyUpgrade(id) {
+            const u = UPGRADES_DB.find(x => x.id === id);
+            if (game.cookies >= u.price && !game.upgradesOwned.includes(id)) {
+                game.cookies -= u.price;
+                game.upgradesOwned.push(id);
+                document.getElementById(`upg-${id}`).remove(); 
+                recalculateStats();
+                updateUI();
+            }
+        }
+
+        function checkUpgradesVisibility() {
+            UPGRADES_DB.forEach(u => {
+                if (game.upgradesOwned.includes(u.id)) return;
+                
+                const btn = document.getElementById(`upg-${u.id}`);
+                if (!btn) return; 
+                
+                let hasReq = false;
+                
+                if (u.targetId === 'click') {
+                    hasReq = game.totalClicks >= 100;
+                } else if (u.targetId === 'passive') {
+                    hasReq = game.totalCookiesAllTime >= (u.price * 0.1);
+                } else {
+                    hasReq = (game.buildings[u.targetId] || 0) >= u.reqCount;
+                }
+
+                btn.style.display = hasReq ? 'block' : 'none';
+                btn.disabled = game.cookies < u.price;
+            });
+        }
+
+        function checkAchievements() {
+            ACHIEVEMENTS_DB.forEach(a => {
+                if (!game.achievementsUnlocked.includes(a.id) && a.condition(game)) {
+                    game.achievementsUnlocked.push(a.id);
+                    showAchievementPopup(a);
+                    showNews("🏆 ERFOLG FREIGESCHALTET: " + a.name + "!");
+                }
+            });
+            generateAchievementsUI();
+        }
+
+        function showAchievementPopup(achievement) {
+            const popup = document.createElement('div');
+            popup.className = 'achievement-popup';
+            popup.innerHTML = `<h4>${achievement.icon} ${achievement.name}</h4><p>${achievement.desc}</p>`;
+            document.body.appendChild(popup);
+            setTimeout(() => popup.remove(), 4000);
+        }
+
+        function checkQuests() {
+            QUESTS_DB.forEach(q => {
+                if (!game.questsCompleted.includes(q.id) && q.condition(game)) {
+                    game.questsCompleted.push(q.id);
+                    game.cookies += q.reward;
+                    game.totalCookiesAllTime += q.reward;
+                    showAchievementPopup({
+                        icon: '⭐',
+                        name: 'QUEST ABGESCHLOSSEN: ' + q.name,
+                        desc: `Du erhältst ${formatNumber(q.reward)} Kekse!`
+                    });
+                    showNews("⭐ QUEST ABGESCHLOSSEN: " + q.name + "! (+) " + formatNumber(q.reward) + " Kekse)");
+                }
+            });
+            generateAchievementsUI();
+        }
+
+        function activateBoost(boostId) {
+            if (game.activeBoost !== null) {
+                alert("Ein Boost läuft bereits!");
+                return;
+            }
+
+            const boost = BOOSTS_DB.find(b => b.id === boostId);
+            game.activeBoost = boostId;
+            game.boostTime = boost.duration;
+
+            if (boost.type === 'combo') {
+                comboMultiplier = boost.multiplier;
+            } else {
+                boostMultiplier = boost.multiplier;
+            }
+
+            showActiveBoost(boost);
+            showNews(`⚡ BOOST AKTIVIERT: ${boost.name}! (+${(boost.multiplier - 1) * 100}% für ${boost.duration}s)`);
+        }
+
+        function showActiveBoost(boost) {
+            const display = document.getElementById('active-boost');
+            display.innerHTML = boost.icon;
+            display.style.display = 'block';
+        }
+
+        /* =========================================================================
+           4. EVENTS (Klicken & Goldene Kekse)
+           ========================================================================= */
+
+        const btnCookie = document.getElementById('cookie-btn');
+        
+        btnCookie.addEventListener('mousedown', (e) => {
+            game.combo++;
+            if (game.combo > game.maxCombo) game.maxCombo = game.combo;
+            comboTimer = 5; 
+            
+            if (game.combo > 1) {
+                const display = document.getElementById('combo-display');
+                display.innerHTML = `x${game.combo} COMBO!`;
+                display.style.display = 'block';
+                setTimeout(() => display.style.display = 'none', 300);
+            }
+
+            let power = clickPower * clickBuffMultiplier * frenzyMultiplier * boostMultiplier * (1 + (game.combo * 0.05) * comboMultiplier);
+            
+            game.cookies += power;
+            game.totalCookiesAllTime += power;
+            game.cookiesFromClicks += power;
+            game.totalClicks++;
+
+            createParticle(e.clientX, e.clientY, power);
+            updateUI();
+            checkAchievements();
+            checkQuests();
+        });
+
+        function createParticle(x, y, amount) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.textContent = '+' + formatNumber(Math.floor(amount));
+            p.style.left = (x - 20 + (Math.random()*40 - 20)) + 'px';
+            p.style.top = (y - 30) + 'px';
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 1500);
+        }
+
+        const goldenCookie = document.getElementById('golden-cookie');
+        
+        function spawnGoldenCookie() {
+            const panel = document.getElementById('left-panel');
+            const maxX = panel.clientWidth - 100;
+            const maxY = panel.clientHeight - 100;
+            
+            goldenCookie.style.left = Math.max(10, Math.random() * maxX) + 'px';
+            goldenCookie.style.top = Math.max(100, Math.random() * maxY) + 'px';
+            goldenCookie.style.display = 'block';
+
+            setTimeout(() => { goldenCookie.style.display = 'none'; }, 10000);
+        }
+
+        goldenCookie.addEventListener('click', () => {
+            goldenCookie.style.display = 'none';
+            game.goldenCookiesClicked++;
+            
+            frenzyMultiplier = 7;
+            frenzyTimer = 30; 
+            document.getElementById('frenzy-indicator').style.display = 'block';
+            
+            showNews("Ein Goldener Keks! FRENZY x7 für 30 Sekunden!");
+        });
+
+        setInterval(() => {
+            if (Math.random() < 0.3) spawnGoldenCookie();
+        }, 60000);
+
+        /* =========================================================================
+           5. UI UPDATE & HELPER FUNKTIONEN
+           ========================================================================= */
+
+        const uiElements = {
+            cookies: document.getElementById('ui-cookies'),
+            cps: document.getElementById('ui-cps'),
+            combo: document.getElementById('ui-combo'),
+            statClicks: document.getElementById('stat-clicks'),
+            statHand: document.getElementById('stat-hand-cookies'),
+            statAll: document.getElementById('stat-all-time'),
+            statGolden: document.getElementById('stat-golden'),
+            statCps: document.getElementById('stat-cps-display'),
+            prestige: document.getElementById('ui-prestige'),
+            pendingStat: document.getElementById('ui-pending-prestige-stat')
+        };
+
+        function formatNumber(num) {
+            num = Math.floor(num);
+            if (num >= 1000000000) return (num / 1000000000).toFixed(2) + ' Mrd';
+            if (num >= 1000000) return (num / 1000000).toFixed(2) + ' Mio';
+            return num.toLocaleString('de-DE');
+        }
+
+        // Lege diesen Cache direkt über der updateUI() Funktion an
+        const uiCache = {};
+
+        function updateUI() {
+            try {
+                // 1. Kekse & Fenster-Titel
+                const newCookiesStr = formatNumber(game.cookies);
+                if (uiCache.cookies !== newCookiesStr) {
+                    if (uiElements.cookies) uiElements.cookies.textContent = newCookiesStr;
+                    document.title = newCookiesStr + " Kekse - Crazy Clicker";
+                    uiCache.cookies = newCookiesStr;
+                }
+
+                // 2. Kekse pro Sekunde (CpS)
+                const newCpsStr = formatNumber(currentCps * frenzyMultiplier * boostMultiplier);
+                if (uiCache.cps !== newCpsStr) {
+                    if (uiElements.cps) uiElements.cps.textContent = newCpsStr;
+                    uiCache.cps = newCpsStr;
+                }
+
+                // 3. Combo-Zähler
+                const newComboStr = 'x' + (game.combo > 1 ? game.combo : '1');
+                if (uiCache.combo !== newComboStr) {
+                    if (uiElements.combo) uiElements.combo.textContent = newComboStr;
+                    uiCache.combo = newComboStr;
+                }
+
+                // 4. Gebäude (Nur aktualisieren, wenn sich die Zahl ändert)
+                BUILDINGS_DB.forEach(b => {
+                    const count = game.buildings[b.id] || 0;
+                    const cost = getBuildingCost(b.basePrice, count);
+                    
+                    const countEl = document.getElementById(`count-${b.id}`);
+                    const costEl = document.getElementById(`cost-${b.id}`);
+                    const btn = document.getElementById(`btn-${b.id}`);
+                    
+                    if (countEl && countEl.textContent != count) {
+                        countEl.textContent = count;
+                    }
+                    
+                    if (costEl) {
+                        if (count >= 5000) {
+                            if (costEl.textContent !== "MAX") {
+                                costEl.textContent = "MAX";
+                                costEl.style.color = "var(--danger)";
+                            }
+                        } else {
+                            const costStr = formatNumber(cost);
+                            if (costEl.textContent !== costStr) {
+                                costEl.textContent = costStr;
+                                costEl.style.color = "#4ade80";
+                            }
+                        }
+                    }
+                    
+                    // Button Klickbarkeit muss jeden Frame geprüft werden
+                    if (btn) btn.disabled = (game.cookies < cost) || (count >= 5000);
+                });
+
+                // 5. Statistik-Werte (Schneller Vergleich ohne extra Cache-Variablen)
+                if (uiElements.statClicks && uiElements.statClicks.textContent != game.totalClicks) 
+                    uiElements.statClicks.textContent = formatNumber(game.totalClicks || 0);
+                
+                if (uiElements.statHand && uiElements.statHand.textContent != Math.floor(game.cookiesFromClicks)) 
+                    uiElements.statHand.textContent = formatNumber(game.cookiesFromClicks || 0);
+                
+                if (uiElements.statAll && uiElements.statAll.textContent != Math.floor(game.totalCookiesAllTime)) 
+                    uiElements.statAll.textContent = formatNumber(game.totalCookiesAllTime || 0);
+                
+                if (uiElements.statGolden && uiElements.statGolden.textContent != game.goldenCookiesClicked) 
+                    uiElements.statGolden.textContent = (game.goldenCookiesClicked || 0);
+                
+                // 6. Prestige Chips
+                if (uiElements.prestige && uiElements.prestige.textContent != game.prestigeLevel) 
+                    uiElements.prestige.textContent = formatNumber(game.prestigeLevel || 0);
+                
+                let totalChipsEarned = Math.floor(Math.cbrt((game.totalCookiesAllTime || 0) / 1000000));
+                let pendingChips = Math.max(0, totalChipsEarned - (game.prestigeLevel || 0));
+                
+                if (uiElements.pendingStat && uiElements.pendingStat.textContent != pendingChips) 
+                    uiElements.pendingStat.textContent = formatNumber(pendingChips);
+
+                checkUpgradesVisibility();
+            } catch (e) {
+                console.error("updateUI Error:", e);
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById('tab-' + tabName).classList.add('active');
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                if (btn.getAttribute('onclick').includes(tabName)) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        
+        const newsArray = [
+            "Lokalnachrichten: Keks-Verkäufe brechen alle Rekorde!",
+            "Wissenschaftler stellen fest: Kekse machen glücklich.",
+            "Gerücht: Die Omas planen eine Revolution.",
+            "Keks-Minenarbeiter fordern weichere Schokostückchen.",
+            "Wirtschaft: Keks-Aktien steigen unaufhaltsam!",
+            "⚠️ WARNUNG: Zu viele Kekse könnten süchtig machen!",
+            "🎉 Das Große Keks-Festival startet nächste Woche!",
+            "🚀 Forscher planen erste Keks-Mission zum Mond!",
+            "👨‍🍳 Neue Rezepte von berühmten Köchen freigeschaltet!",
+            "💰 Börse: Keks-Index steigt um 500%!"
+        ];
+        setInterval(() => {
+            const randomNews = newsArray[Math.floor(Math.random() * newsArray.length)];
+            document.getElementById('news-ticker').textContent = "Breaking News: " + randomNews;
+        }, 20000);
+
+        function showNews(text) {
+            document.getElementById('news-ticker').textContent = "🚨 " + text;
+        }
+
+        /* =========================================================================
+           6. PRESTIGE & SPEICHERSYSTEM
+           ========================================================================= */
+
+        function ascend() {
+            let totalChipsEarned = Math.floor(Math.cbrt(game.totalCookiesAllTime / 1000000));
+            let pendingChips = totalChipsEarned - game.prestigeLevel;
+
+            if (pendingChips <= 0) {
+                alert("Du musst noch mehr Kekse backen, um neue Himmlische Chips zu erhalten!");
+                return;
+            }
+
+            if (confirm(`Willst du wirklich aufsteigen? Du verlierst alle Kekse, Gebäude und Upgrades, erhältst aber ${pendingChips} Himmlische Chips!`)) {
+                game.prestigeLevel += pendingChips;
+                game.cookies = 0;
+                game.buildings = {};
+                BUILDINGS_DB.forEach(b => game.buildings[b.id] = 0);
+                game.upgradesOwned = [];
+                
+                saveGame();
+                location.reload(); 
+            }
+        }
+
+        function saveGame() {
+            const jsonString = JSON.stringify(game);
+            // encodeURIComponent schützt vor Fehlern bei speziellen (UTF-8) Zeichen
+            const encodedString = btoa(encodeURIComponent(jsonString)); 
+            localStorage.setItem('ultimateCookieSave', encodedString);
+            showNews("Spielstand erfolgreich gespeichert!");
+        }
+
+        function loadGame() {
+            const saved = localStorage.getItem('ultimateCookieSave');
+            if (saved) {
+                try {
+                    // Entschlüsseln
+                    const decodedString = decodeURIComponent(atob(saved));
+                    const parsed = JSON.parse(decodedString);
+                    game = { ...game, ...parsed };
+                } catch (e) {
+                    // Fallback-Logik, falls der Spieler noch einen alten, unverschlüsselten Spielstand hat
+                    console.warn("Spielstand ist entweder veraltet oder manipuliert, versuche Klartext zu laden...");
+                    if (saved.includes('{')) {
+                        game = { ...game, ...JSON.parse(saved) };
+                    }
+                }
+            }
+        }
+
+        function resetGame() {
+            if (confirm("WARNUNG! Das löscht ALLES. Auch dein Prestige. Sicher?")) {
+                localStorage.removeItem('ultimateCookieSave');
+                location.reload();
+            }
+        }
+
+        /* =========================================================================
+           7. DER MAIN GAME LOOP 
+           ========================================================================= */
+
+        let lastTime = performance.now(); // Präziser als Date.now()
+
+        function gameLoop(currentTime) {
+            let deltaTime = (currentTime - lastTime) / 1000;
+            lastTime = currentTime;
+
+            // Optional: Cappe deltaTime, falls der Tab lange inaktiv war (verhindert riesige Sprünge)
+            if (deltaTime > 1) deltaTime = 1;
+
+            let cookiesPerTick = (currentCps * frenzyMultiplier * boostMultiplier) * deltaTime;
+            game.cookies += cookiesPerTick;
+            game.totalCookiesAllTime += cookiesPerTick;
+
+            updateUI();
+            
+            // Ruft die Funktion vor dem nächsten Frame-Render des Browsers wieder auf
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Anstelle von setInterval, starte den Loop beim Initialisieren so:
+        requestAnimationFrame(gameLoop);
+        let saveTimer = 0;
+        setInterval(() => {
+            if (frenzyTimer > 0) {
+                frenzyTimer--;
+                if (frenzyTimer <= 0) {
+                    frenzyMultiplier = 1;
+                    document.getElementById('frenzy-indicator').style.display = 'none';
+                    showNews("Frenzy ist vorbei.");
+                }
+            }
+
+            if (clickBuffTimer > 0) {
+                clickBuffTimer--;
+                if (clickBuffTimer <= 0) {
+                    clickBuffMultiplier = 1;
+                    showNews("Zucker-Rush ist vorbei.");
+                }
+            }
+
+            if (comboTimer > 0) {
+                comboTimer--;
+            } else if (game.combo > 0) {
+                game.combo = 0;
+            }
+
+            if (game.boostTime > 0) {
+                game.boostTime--;
+                if (game.boostTime <= 0) {
+                    boostMultiplier = 1;
+                    comboMultiplier = 1;
+                    game.activeBoost = null;
+                    document.getElementById('active-boost').style.display = 'none';
+                    showNews("Boost abgelaufen!");
+                }
+            }
+
+            playTimeSeconds++;
+
+            if (playTimeSeconds % 60 === 0 && Math.random() < 0.2 && game.activeBoost === null) {
+                const randomBoost = BOOSTS_DB[Math.floor(Math.random() * BOOSTS_DB.length)];
+                activateBoost(randomBoost.id);
+            }
+
+            if (playTimeSeconds % 60 === 0 && game.totalClicks >= 500 && Math.random() < 0.1) {
+                const randomEvent = SECRET_EVENTS[Math.floor(Math.random() * SECRET_EVENTS.length)];
+                randomEvent.action();
+            }
+
+            saveTimer++;
+            if (saveTimer >= 30) {
+                saveGame();
+                saveTimer = 0;
+            }
+
+            checkAchievements();
+            checkQuests();
+        }, 1000);
+
+        /* =========================================================================
+           8. GEHEIMER CHEAT-CODE (DEV-CONSOLE)
+           ========================================================================= */
+           
+        let secretCode = "devmode"; 
+        let inputBuffer = "";
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key.length > 1) return;
+            
+            inputBuffer += e.key.toLowerCase();
+            
+            if (inputBuffer.length > secretCode.length) {
+                inputBuffer = inputBuffer.substring(1);
+            }
+
+            if (inputBuffer === secretCode) {
+                const devConsole = document.getElementById('dev-console');
+                
+                if (devConsole.style.display === 'none') {
+                    devConsole.style.display = 'block';
+                    showNews("🔓 Developer Console freigeschaltet!");
+                } else {
+                    devConsole.style.display = 'none';
+                    showNews("🔒 Developer Console versteckt!");
+                }
+                
+                inputBuffer = ""; 
+            }
+        });
+
+        // --- SPIEL STARTEN ---
+        window.onload = initGame;
+
+    </script>
+</body>
+</html>
