@@ -45,13 +45,3 @@ As a pure client-side vanilla web application, the game requires **no compilatio
 
 1. Clone or download this repository.
 2. Double-click the `cookieClicker.html` file to run it directly in any modern desktop web browser (Chrome, Firefox, Edge, Safari).
-
----
-
-## 🎨 Design Language
-The UI adopts a highly immersive, dark-steampunk bakery theme:
-* **Layout:** Strict structural 3-panel system optimized exclusively for widescreen desktop monitors.
-* **Styling:** Rich CSS variables leveraging muted terracotta and gold accents combined with linear-gradient buttons and particle emission physics.
-
-## 📄 License
-This project is open-source and available under the **MIT License**. Feel free to fork, modify, and expand your cookie empire!
